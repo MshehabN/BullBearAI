@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BullBear AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>BullBear AI</h1>
+        <p>Stock Market Prediction Tool</p>
+        
+        <div class="card">
+            <h2>Search Stock</h2>
+            <div class="search-box">
+                <input type="text" id="symbolInput" placeholder="Enter stock symbol (e.g., AAPL)">
+                <button onclick="searchStock()">Search</button>
+            </div>
+        </div>
+        
+        <div id="stockInfo" class="card" style="display: none;">
+            <h2 id="stockSymbol"></h2>
+            <p>Current Price: $<span id="currentPrice"></span></p>
+        </div>
+        
+        <div id="predictionSection" class="card" style="display: none;">
+            <h2>Prediction</h2>
+            <button onclick="getPrediction()">Get Prediction</button>
+            <div id="predictionResults"></div>
+        </div>
+        
+        <!-- need to add chart display here later -->
+        <!-- want to add watchlist feature later -->
+        <!--
+        <div class="card">
+            <h2>Watchlist</h2>
+            <p>Feature coming soon...</p>
+        </div>
+        -->
+        
+    </div>
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
+
