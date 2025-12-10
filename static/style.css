@@ -63,4 +63,11 @@ button:hover {
     color: green;
     margin-top: 10px;
 }
+#chartContainer {
+    margin-top: 20px;
+}
+#chartContainer img {
+    max-width: 100%;
+    height: auto;
+}
 

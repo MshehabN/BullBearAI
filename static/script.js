@@ -31,6 +31,16 @@ function searchStock() {
         document.getElementById('currentPrice').textContent = data.price;
         document.getElementById('stockInfo').style.display = 'block';
         
+        // show chart if available
+        if (data.chart) {
+            const chartImg = document.createElement('img');
+            chartImg.src = 'data:image/png;base64,' + data.chart;
+            chartImg.style.width = '100%';
+            chartImg.style.maxWidth = '800px';
+            document.getElementById('chartContainer').innerHTML = '';
+            document.getElementById('chartContainer').appendChild(chartImg);
+        }
+        
         // show prediction section
         document.getElementById('predictionSection').style.display = 'block';
         document.getElementById('predictionResults').innerHTML = '';

@@ -13,4 +13,6 @@ ENV/
 .vscode/
 .idea/
 *.log
+models/
+watchlist.txt
 

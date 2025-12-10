@@ -6,6 +6,13 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error
+import pickle
+import os
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import base64
+import io
 
 app = Flask(__name__)
 
@@ -13,21 +20,50 @@ app = Flask(__name__)
 models_cache = {}
 scaler_cache = {}
 
-# want to save models to file so they persist after restart
+# load saved models
+def load_models():
+    if os.path.exists('models'):
+        for filename in os.listdir('models'):
+            if filename.endswith('_model.pkl'):
+                symbol = filename.replace('_model.pkl', '')
+                try:
+                    with open(f'models/{symbol}_model.pkl', 'rb') as f:
+                        models_cache[symbol] = pickle.load(f)
+                    with open(f'models/{symbol}_scaler.pkl', 'rb') as f:
+                        scaler_cache[symbol] = pickle.load(f)
+                except:
+                    pass
+
+if not os.path.exists('models'):
+    os.makedirs('models')
+
+load_models()
 
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
+def validate_symbol(symbol):
+    # validate stock symbol format
+    if not symbol:
+        return False, 'Symbol is required'
+    if not symbol.isalpha():
+        return False, 'Symbol must contain only letters'
+    if len(symbol) < 1 or len(symbol) > 5:
+        return False, 'Symbol must be 1-5 characters'
+    return True, ''
+
 @app.route('/api/search', methods=['POST'])
 def search_stock():
     # get the stock symbol from the request
     data = request.json
-    symbol = data.get('symbol', '').upper()
+    symbol = data.get('symbol', '').upper().strip()
     
-    if not symbol:
-        return jsonify({'error': 'Symbol required'}), 400
+    # validate symbol
+    is_valid, error_msg = validate_symbol(symbol)
+    if not is_valid:
+        return jsonify({'error': error_msg}), 400
     
     try:
         # use yfinance to get stock data
@@ -52,13 +88,34 @@ def search_stock():
         dates = hist.index.strftime('%Y-%m-%d').tolist()
         prices = hist['Close'].tolist()
         
-        # need to add chart display later
+        # create chart with matplotlib
+        plt.figure(figsize=(10, 4))
+        plt.plot(dates, prices, color='green', linewidth=1.5)
+        plt.title(f'{symbol} Price Chart (6 Months)')
+        plt.xlabel('Date')
+        plt.ylabel('Price ($)')
+        
+        # show fewer dates on x-axis
+        num_dates = len(dates)
+        step = max(1, num_dates // 10)
+        tick_positions = list(range(0, num_dates, step))
+        tick_labels = [dates[i] for i in tick_positions]
+        plt.xticks(tick_positions, tick_labels, rotation=45)
+        plt.tight_layout()
+        
+        # convert chart to base64 for frontend
+        img_buffer = io.BytesIO()
+        plt.savefig(img_buffer, format='png')
+        img_buffer.seek(0)
+        chart_data = base64.b64encode(img_buffer.getvalue()).decode()
+        plt.close()
         
         return jsonify({
             'symbol': symbol,
             'price': round(current_price, 2),
             'dates': dates,
-            'prices': [round(p, 2) for p in prices]
+            'prices': [round(p, 2) for p in prices],
+            'chart': chart_data
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -66,10 +123,12 @@ def search_stock():
 @app.route('/api/train', methods=['POST'])
 def train_model():
     data = request.json
-    symbol = data.get('symbol', '').upper()
+    symbol = data.get('symbol', '').upper().strip()
     
-    if not symbol:
-        return jsonify({'error': 'Symbol required'}), 400
+    # validate symbol
+    is_valid, error_msg = validate_symbol(symbol)
+    if not is_valid:
+        return jsonify({'error': error_msg}), 400
     
     try:
         # get 2 years of data for training
@@ -83,7 +142,7 @@ def train_model():
         df = hist.copy()
         df = df.dropna()
         
-        # create technical indicators as features
+        # technical indicators as features
         # SMA is simple moving average
         df['SMA_5'] = df['Close'].rolling(window=5).mean()
         df['SMA_10'] = df['Close'].rolling(window=10).mean()
@@ -148,6 +207,15 @@ def train_model():
         models_cache[symbol] = model
         scaler_cache[symbol] = scaler
         
+        # save to file
+        try:
+            with open(f'models/{symbol}_model.pkl', 'wb') as f:
+                pickle.dump(model, f)
+            with open(f'models/{symbol}_scaler.pkl', 'wb') as f:
+                pickle.dump(scaler, f)
+        except:
+            pass
+        
         return jsonify({
             'success': True,
             'mae': round(mae, 2),
@@ -160,10 +228,12 @@ def train_model():
 @app.route('/api/predict', methods=['POST'])
 def predict():
     data = request.json
-    symbol = data.get('symbol', '').upper()
+    symbol = data.get('symbol', '').upper().strip()
     
-    if not symbol:
-        return jsonify({'error': 'Symbol required'}), 400
+    # validate symbol
+    is_valid, error_msg = validate_symbol(symbol)
+    if not is_valid:
+        return jsonify({'error': error_msg}), 400
     
     try:
         # if model doesnt exist, train it first
@@ -216,6 +286,15 @@ def predict():
             
             models_cache[symbol] = model
             scaler_cache[symbol] = scaler
+            
+            # save to file
+            try:
+                with open(f'models/{symbol}_model.pkl', 'wb') as f:
+                    pickle.dump(model, f)
+                with open(f'models/{symbol}_scaler.pkl', 'wb') as f:
+                    pickle.dump(scaler, f)
+            except:
+                pass
         
         # get the trained model
         model = models_cache[symbol]
@@ -318,9 +397,6 @@ def calculate_rsi(prices, period=14):
     # convert to RSI value between 0-100
     rsi = 100 - (100 / (1 + rs))
     return rsi
-
-# want to add chart visualization later
-# want to add watchlist feature later
 
 if __name__ == '__main__':
     app.run(debug=True, host='127.0.0.1', port=5000)
