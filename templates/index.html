@@ -7,9 +7,20 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    <div class="background-circles">
+        <div class="circle circle1"></div>
+        <div class="circle circle2"></div>
+        <div class="circle circle3"></div>
+        <div class="circle circle4"></div>
+        <div class="circle circle5"></div>
+        <div class="circle circle6"></div>
+    </div>
     <div class="container">
-        <h1>BullBear AI</h1>
-        <p>Stock Market Prediction Tool</p>
+        <div class="header">
+            <img src="{{ url_for('static', filename='BullBearAILogo.png') }}" alt="BullBear AI Logo" class="logo">
+            <h1>BullBear AI</h1>
+            <p>Stock Market Prediction Tool</p>
+        </div>
         
         <div class="card">
             <h2>Search Stock</h2>

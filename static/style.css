@@ -2,23 +2,103 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 20px;
-    background-color: #f5f5f5;
+    background-color: #250600;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+body::-webkit-scrollbar {
+    display: none;
+}
+body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.background-circles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+}
+.circle {
+    position: absolute;
+    border-radius: 50%;
+    background-color: #DAA520;
+    opacity: 0.15;
+}
+.circle1 {
+    width: 400px;
+    height: 400px;
+    top: -100px;
+    left: -50px;
+}
+.circle2 {
+    width: 350px;
+    height: 350px;
+    top: 200px;
+    right: -80px;
+}
+.circle3 {
+    width: 500px;
+    height: 500px;
+    bottom: -150px;
+    left: 100px;
+}
+.circle4 {
+    width: 300px;
+    height: 300px;
+    top: 500px;
+    right: 200px;
+}
+.circle5 {
+    width: 450px;
+    height: 450px;
+    top: 300px;
+    left: 50%;
+}
+.circle6 {
+    width: 380px;
+    height: 380px;
+    bottom: 100px;
+    right: 150px;
 }
 .container {
     max-width: 800px;
     margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+.logo {
+    max-width: 200px;
+    height: auto;
+    margin-bottom: 10px;
 }
 h1 {
     text-align: center;
-    color: #333;
+    color: #DAA520;
+    margin: 10px 0;
+}
+p {
+    color: #DAA520;
 }
 
 .card {
-    background-color: white;
+    background-color: #1a0400;
     border-radius: 8px;
     padding: 20px;
     margin: 20px 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 2px solid #DAA520;
+}
+.card h2 {
+    color: #DAA520;
+    margin-top: 0;
 }
 
 .search-box {
@@ -29,38 +109,97 @@ h1 {
 input[type="text"] {
     flex: 1;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 2px solid #DAA520;
     border-radius: 4px;
     font-size: 16px;
+    background-color: #1a0400;
+    color: #DAA520;
+}
+input[type="text"]::placeholder {
+    color: #8B6914;
 }
 
 button {
     padding: 10px 20px;
-    background-color: #4CAF50;
-    color: white;
+    background-color: #DAA520;
+    color: #250600;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-size: 16px;
+    font-weight: bold;
 }
 
 button:hover {
-    background-color: #45a049;
+    background-color: #B8860B;
 }
 
 
 #predictionResults {
     margin-top: 20px;
+    padding: 20px;
+    background-color: #250600;
+    border-radius: 8px;
+    color: #DAA520;
+    border: 2px solid #DAA520;
+}
+.prediction-header {
+    margin-bottom: 20px;
+    text-align: center;
+}
+#predictionResults h3 {
+    color: #DAA520;
+    margin: 0 0 15px 0;
+    font-size: 24px;
+}
+.direction-badge {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 20px;
+    border: 2px solid;
+    margin-top: 10px;
+}
+.direction-label {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 5px;
+    opacity: 0.8;
+}
+.direction-value {
+    display: block;
+    font-size: 20px;
+    font-weight: bold;
+}
+.prediction-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 20px;
+}
+.prediction-item {
+    background-color: #1a0400;
     padding: 15px;
-    background-color: #f9f9f9;
-    border-radius: 4px;
+    border-radius: 6px;
+    border: 1px solid #DAA520;
+    display: flex;
+    flex-direction: column;
+}
+.prediction-label {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-bottom: 8px;
+}
+.prediction-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #DAA520;
 }
 .error {
-    color: red;
+    color: #ff6b6b;
     margin-top: 10px;
 }
 .success {
-    color: green;
+    color: #DAA520;
     margin-top: 10px;
 }
 #chartContainer {
@@ -69,5 +208,11 @@ button:hover {
 #chartContainer img {
     max-width: 100%;
     height: auto;
+}
+#stockInfo p {
+    color: #DAA520;
+}
+#stockSymbol {
+    color: #DAA520;
 }
 

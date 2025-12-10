@@ -78,13 +78,32 @@ function getPrediction() {
         
         // display the prediction results
         document.getElementById('predictionResults').innerHTML = 
+            '<div class="prediction-header">' +
             '<h3>Prediction Results</h3>' +
-            '<p><strong>Direction:</strong> <span style="color: ' + data.direction_color + '">' + data.direction + '</span></p>' +
-            '<p><strong>Current Price:</strong> $' + data.current_price + '</p>' +
-            '<p><strong>Predicted Price:</strong> $' + data.predicted_price + '</p>' +
-            '<p><strong>Price Change:</strong> <span style="color: ' + data.change_color + '">$' + data.price_change + 
-            ' (' + data.price_change_pct + '%)</span></p>' +
-            '<p><strong>Confidence:</strong> ' + data.confidence + '%</p>';
+            '<div class="direction-badge" style="background-color: ' + data.direction_color + '20; border-color: ' + data.direction_color + ';">' +
+            '<span class="direction-label">Direction</span>' +
+            '<span class="direction-value" style="color: ' + data.direction_color + ';">' + data.direction + '</span>' +
+            '</div>' +
+            '</div>' +
+            '<div class="prediction-grid">' +
+            '<div class="prediction-item">' +
+            '<span class="prediction-label">Current Price</span>' +
+            '<span class="prediction-value">$' + data.current_price + '</span>' +
+            '</div>' +
+            '<div class="prediction-item">' +
+            '<span class="prediction-label">Predicted Price</span>' +
+            '<span class="prediction-value">$' + data.predicted_price + '</span>' +
+            '</div>' +
+            '<div class="prediction-item">' +
+            '<span class="prediction-label">Price Change</span>' +
+            '<span class="prediction-value" style="color: ' + data.change_color + ';">$' + data.price_change + 
+            ' (' + data.price_change_pct + '%)</span>' +
+            '</div>' +
+            '<div class="prediction-item">' +
+            '<span class="prediction-label">Confidence</span>' +
+            '<span class="prediction-value">' + data.confidence + '%</span>' +
+            '</div>' +
+            '</div>';
     })
     .catch(error => {
         console.error('Error:', error);
