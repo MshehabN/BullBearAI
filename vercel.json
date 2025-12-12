@@ -2,11 +2,6 @@
   "buildCommand": "pip install -r requirements.txt",
   "devCommand": "python app.py",
   "installCommand": "pip install -r requirements.txt",
-  "framework": null,
-  "functions": {
-    "app.py": {
-      "runtime": "python3.11"
-    }
-  }
+  "framework": null
 }
 
