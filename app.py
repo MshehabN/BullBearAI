@@ -13,6 +13,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import base64
 import io
+import time
 
 app = Flask(__name__)
 
@@ -68,11 +69,21 @@ def search_stock():
     try:
         # use yfinance to get stock data
         stock = yf.Ticker(symbol)
-        info = stock.info
+        
+        # add delay to avoid rate limiting
+        time.sleep(0.5)
+        
+        try:
+            info = stock.info
+        except Exception as e:
+            if '429' in str(e) or 'Too Many Requests' in str(e):
+                return jsonify({'error': 'Too many requests. Please wait a moment and try again.'}), 429
+            raise
         
         # try to get current price from info, if not available get from history
         current_price = info.get('currentPrice') or info.get('regularMarketPrice')
         if not current_price:
+            time.sleep(0.5)
             hist = stock.history(period='1d')
             if not hist.empty:
                 current_price = hist['Close'].iloc[-1]
@@ -80,6 +91,7 @@ def search_stock():
                 return jsonify({'error': 'Could not get price data'}), 404
         
         # get 6 months of historical data for the chart
+        time.sleep(0.5)
         hist = stock.history(period='6mo')
         if hist.empty:
             return jsonify({'error': 'No historical data found'}), 404
