@@ -75,30 +75,38 @@ def search_stock():
         # use yfinance to get stock data
         stock = yf.Ticker(symbol)
         
-        # add delay to avoid rate limiting
-        time.sleep(1)
+        # add delay to avoid rate limiting (200-500ms recommended)
+        time.sleep(0.3)
         
-        # get historical data first (less likely to hit rate limits)
-        try:
-            hist = stock.history(period='6mo')
-        except Exception as e:
-            error_str = str(e)
-            if '429' in error_str or 'Too Many Requests' in error_str or 'Client Error' in error_str:
-                return jsonify({'error': 'Yahoo Finance rate limit reached. Please wait a few minutes and try again.'}), 429
-            return jsonify({'error': f'Error fetching data: {error_str}'}), 500
+        # get historical data - try shorter periods first to reduce load
+        hist = None
+        periods_to_try = ['1mo', '3mo', '6mo']
         
-        if hist.empty or len(hist) == 0:
-            # try with a shorter period as fallback
+        for period in periods_to_try:
             try:
-                time.sleep(1)
-                hist = stock.history(period='1mo')
-                if hist.empty or len(hist) == 0:
-                    return jsonify({'error': 'No historical data found for this symbol. Please check the symbol and try again.'}), 404
+                hist = stock.history(period=period)
+                if not hist.empty and len(hist) > 0:
+                    break
+                time.sleep(0.3)
             except Exception as e:
                 error_str = str(e)
-                if '429' in error_str or 'Too Many Requests' in error_str:
-                    return jsonify({'error': 'Yahoo Finance rate limit reached. Please wait a few minutes and try again.'}), 429
-                return jsonify({'error': f'Error fetching data: {error_str}'}), 500
+                # check for rate limit errors (403, 999, 429)
+                if '403' in error_str or '999' in error_str or '429' in error_str or 'Too Many Requests' in error_str or 'Forbidden' in error_str:
+                    if period == periods_to_try[-1]:
+                        return jsonify({'error': 'Yahoo Finance rate limit reached (403/999). Please wait 5-10 minutes and try again.'}), 429
+                    time.sleep(0.5)
+                    continue
+                # check for JSON parsing errors (Yahoo returning HTML/empty)
+                if 'Expecting value' in error_str or 'No price data' in error_str or 'delisted' in error_str.lower():
+                    if period == periods_to_try[-1]:
+                        return jsonify({'error': 'Yahoo Finance is temporarily blocking requests. Please wait 5-10 minutes and try again.'}), 503
+                    time.sleep(0.5)
+                    continue
+                if period == periods_to_try[-1]:
+                    return jsonify({'error': f'Error fetching data: {error_str}'}), 500
+        
+        if hist is None or hist.empty or len(hist) == 0:
+            return jsonify({'error': 'No historical data found. Yahoo Finance may be rate limiting. Please wait 5-10 minutes and try again.'}), 404
         
         # get current price from the most recent data
         current_price = hist['Close'].iloc[-1]
