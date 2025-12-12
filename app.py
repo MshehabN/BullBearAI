@@ -273,6 +273,7 @@ def predict():
     try:
         # if model doesnt exist, train it first
         if symbol not in models_cache:
+            time.sleep(30)
             stock = yf.Ticker(symbol)
             hist = stock.history(period='2y')
             
