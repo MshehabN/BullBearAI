@@ -75,8 +75,8 @@ def search_stock():
         # use yfinance to get stock data
         stock = yf.Ticker(symbol)
         
-        # add delay to avoid rate limiting (200-500ms recommended)
-        time.sleep(0.3)
+        # add 30 second delay to avoid rate limiting
+        time.sleep(30)
         
         # get historical data - try shorter periods first to reduce load
         hist = None
@@ -87,20 +87,22 @@ def search_stock():
                 hist = stock.history(period=period)
                 if not hist.empty and len(hist) > 0:
                     break
-                time.sleep(0.3)
+                # wait 30 seconds before trying next period
+                if period != periods_to_try[-1]:
+                    time.sleep(30)
             except Exception as e:
                 error_str = str(e)
                 # check for rate limit errors (403, 999, 429)
                 if '403' in error_str or '999' in error_str or '429' in error_str or 'Too Many Requests' in error_str or 'Forbidden' in error_str:
                     if period == periods_to_try[-1]:
                         return jsonify({'error': 'Yahoo Finance rate limit reached (403/999). Please wait 5-10 minutes and try again.'}), 429
-                    time.sleep(0.5)
+                    time.sleep(30)
                     continue
                 # check for JSON parsing errors (Yahoo returning HTML/empty)
                 if 'Expecting value' in error_str or 'No price data' in error_str or 'delisted' in error_str.lower():
                     if period == periods_to_try[-1]:
                         return jsonify({'error': 'Yahoo Finance is temporarily blocking requests. Please wait 5-10 minutes and try again.'}), 503
-                    time.sleep(0.5)
+                    time.sleep(30)
                     continue
                 if period == periods_to_try[-1]:
                     return jsonify({'error': f'Error fetching data: {error_str}'}), 500
@@ -164,6 +166,7 @@ def train_model():
     
     try:
         # get 2 years of data for training
+        time.sleep(30)
         stock = yf.Ticker(symbol)
         hist = stock.history(period='2y')
         
@@ -333,6 +336,7 @@ def predict():
         scaler = scaler_cache[symbol]
         
         # get recent 3 months of data for prediction
+        time.sleep(30)
         stock = yf.Ticker(symbol)
         hist = stock.history(period='3mo')
         
