@@ -22,6 +22,10 @@ app = Flask(__name__)
 models_cache = {}
 scaler_cache = {}
 
+# cache for stock data to avoid repeated API calls
+stock_data_cache = {}
+cache_timeout = 300  # 5 minutes
+
 # load saved models
 def load_models():
     if os.path.exists('models'):
@@ -115,13 +119,18 @@ def search_stock():
         chart_data = base64.b64encode(img_buffer.getvalue()).decode()
         plt.close()
         
-        return jsonify({
+        result = {
             'symbol': symbol,
             'price': round(current_price, 2),
             'dates': dates,
             'prices': [round(p, 2) for p in prices],
             'chart': chart_data
-        })
+        }
+        
+        # cache the result
+        stock_data_cache[symbol] = (result, current_time)
+        
+        return jsonify(result)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
