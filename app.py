@@ -72,28 +72,9 @@ def search_stock():
         stock = yf.Ticker(symbol)
         
         # add delay to avoid rate limiting
-        time.sleep(0.5)
+        time.sleep(1)
         
-        try:
-            info = stock.info
-        except Exception as e:
-            error_str = str(e)
-            if '429' in error_str or 'Too Many Requests' in error_str or 'Client Error' in error_str:
-                return jsonify({'error': 'Yahoo Finance rate limit reached. Please wait a few minutes and try again.'}), 429
-            raise
-        
-        # try to get current price from info, if not available get from history
-        current_price = info.get('currentPrice') or info.get('regularMarketPrice')
-        if not current_price:
-            time.sleep(0.5)
-            hist = stock.history(period='1d')
-            if not hist.empty:
-                current_price = hist['Close'].iloc[-1]
-            else:
-                return jsonify({'error': 'Could not get price data'}), 404
-        
-        # get 6 months of historical data for the chart
-        time.sleep(0.5)
+        # get historical data first (less likely to hit rate limits)
         try:
             hist = stock.history(period='6mo')
         except Exception as e:
@@ -101,8 +82,12 @@ def search_stock():
             if '429' in error_str or 'Too Many Requests' in error_str or 'Client Error' in error_str:
                 return jsonify({'error': 'Yahoo Finance rate limit reached. Please wait a few minutes and try again.'}), 429
             raise
+        
         if hist.empty:
             return jsonify({'error': 'No historical data found'}), 404
+        
+        # get current price from the most recent data
+        current_price = hist['Close'].iloc[-1]
         
         # format dates and prices for the frontend
         dates = hist.index.strftime('%Y-%m-%d').tolist()
