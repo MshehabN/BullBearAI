@@ -85,10 +85,20 @@ def search_stock():
             error_str = str(e)
             if '429' in error_str or 'Too Many Requests' in error_str or 'Client Error' in error_str:
                 return jsonify({'error': 'Yahoo Finance rate limit reached. Please wait a few minutes and try again.'}), 429
-            raise
+            return jsonify({'error': f'Error fetching data: {error_str}'}), 500
         
-        if hist.empty:
-            return jsonify({'error': 'No historical data found'}), 404
+        if hist.empty or len(hist) == 0:
+            # try with a shorter period as fallback
+            try:
+                time.sleep(1)
+                hist = stock.history(period='1mo')
+                if hist.empty or len(hist) == 0:
+                    return jsonify({'error': 'No historical data found for this symbol. Please check the symbol and try again.'}), 404
+            except Exception as e:
+                error_str = str(e)
+                if '429' in error_str or 'Too Many Requests' in error_str:
+                    return jsonify({'error': 'Yahoo Finance rate limit reached. Please wait a few minutes and try again.'}), 429
+                return jsonify({'error': f'Error fetching data: {error_str}'}), 500
         
         # get current price from the most recent data
         current_price = hist['Close'].iloc[-1]
