@@ -19,7 +19,12 @@ function searchStock() {
         },
         body: JSON.stringify({ symbol: symbol })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => Promise.reject(err));
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.error) {
             alert('Error: ' + data.error);
@@ -47,7 +52,8 @@ function searchStock() {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error searching for stock');
+        const errorMsg = error.error || error.message || 'Error searching for stock';
+        alert('Error: ' + errorMsg);
     });
 }
 
@@ -69,7 +75,12 @@ function getPrediction() {
         },
         body: JSON.stringify({ symbol: currentSymbol })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => Promise.reject(err));
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.error) {
             document.getElementById('predictionResults').innerHTML = '<div class="error">Error: ' + data.error + '</div>';
@@ -107,7 +118,8 @@ function getPrediction() {
     })
     .catch(error => {
         console.error('Error:', error);
-        document.getElementById('predictionResults').innerHTML = '<div class="error">Error getting prediction</div>';
+        const errorMsg = error.error || error.message || 'Error getting prediction';
+        document.getElementById('predictionResults').innerHTML = '<div class="error">Error: ' + errorMsg + '</div>';
     });
 }
 

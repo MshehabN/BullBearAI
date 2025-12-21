@@ -1,3 +1,13 @@
+html {
+    overflow-x: hidden;
+    overflow-y: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+html::-webkit-scrollbar {
+    display: none;
+}
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -6,13 +16,11 @@ body {
     position: relative;
     overflow-x: hidden;
     overflow-y: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 body::-webkit-scrollbar {
     display: none;
-}
-body {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
 }
 .background-circles {
     position: fixed;

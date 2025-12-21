@@ -25,7 +25,7 @@
         <div class="card">
             <h2>Search Stock</h2>
             <div class="search-box">
-                <input type="text" id="symbolInput" placeholder="Enter stock symbol (e.g., AAPL)">
+                <input type="text" id="symbolInput" placeholder="Enter stock symbol (e.g., AAPL)" onkeypress="if(event.key === 'Enter') searchStock()">
                 <button onclick="searchStock()">Search</button>
             </div>
         </div>

@@ -31,13 +31,34 @@ def load_models():
                         models_cache[symbol] = pickle.load(f)
                     with open(f'models/{symbol}_scaler.pkl', 'rb') as f:
                         scaler_cache[symbol] = pickle.load(f)
-                except:
+                except (FileNotFoundError, pickle.UnpicklingError, IOError) as e:
+                    # Skip models that can't be loaded
                     pass
 
 if not os.path.exists('models'):
     os.makedirs('models')
 
 load_models()
+
+
+def calculate_rsi(prices, period=14):
+    # calculate RSI indicator
+    # RSI measures if stock is overbought or oversold
+    delta = prices.diff()
+    # separate gains and losses
+    gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+    # calculate relative strength
+    # avoid division by zero - if loss is 0 or very small, RSI should be 100 (overbought)
+    # use pandas operations to preserve Series structure
+    rs = gain / loss.replace(0, np.nan)
+    # if no losses (loss was 0), RSI = 100 (overbought)
+    rs = rs.fillna(np.inf)
+    # convert to RSI value between 0-100
+    # if rs is inf (no losses), RSI = 100
+    rsi = 100 - (100 / (1 + rs))
+    rsi = rsi.replace([np.inf, -np.inf], 100)
+    return rsi
 
 
 @app.route('/')
@@ -213,8 +234,9 @@ def train_model():
                 pickle.dump(model, f)
             with open(f'models/{symbol}_scaler.pkl', 'wb') as f:
                 pickle.dump(scaler, f)
-        except:
-            pass
+        except (IOError, OSError) as e:
+            # Log error but don't fail the request
+            print(f"Warning: Could not save model for {symbol}: {e}")
         
         return jsonify({
             'success': True,
@@ -293,8 +315,9 @@ def predict():
                     pickle.dump(model, f)
                 with open(f'models/{symbol}_scaler.pkl', 'wb') as f:
                     pickle.dump(scaler, f)
-            except:
-                pass
+            except (IOError, OSError) as e:
+                # Log error but don't fail the request
+                print(f"Warning: Could not save model for {symbol}: {e}")
         
         # get the trained model
         model = models_cache[symbol]
@@ -384,19 +407,6 @@ def predict():
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
-def calculate_rsi(prices, period=14):
-    # calculate RSI indicator
-    # RSI measures if stock is overbought or oversold
-    delta = prices.diff()
-    # separate gains and losses
-    gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
-    loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
-    # calculate relative strength
-    rs = gain / loss
-    # convert to RSI value between 0-100
-    rsi = 100 - (100 / (1 + rs))
-    return rsi
 
 if __name__ == '__main__':
     app.run(debug=True, host='127.0.0.1', port=5000)
